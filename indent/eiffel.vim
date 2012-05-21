@@ -23,6 +23,8 @@ setlocal indentkeys+==end,=else,=ensure,=require,=check,=loop,=until
 setlocal indentkeys+==creation,=feature,=inherit,=class,=is,=redefine,=rename,=variant
 setlocal indentkeys+==invariant,=do,=local,=export
 
+let b:undo_indent = "setl smartindent< indentkeys< indentexpr< autoindent< comments< "
+
 " Define some stuff
 " keywords grouped by indenting
 let s:trust_user_indent = '\(+\)\(\s*\(--\).*\)\=$'
