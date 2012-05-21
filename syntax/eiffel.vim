@@ -57,20 +57,20 @@ if exists("eiffel_ise")
   syn region  eiffelGenericDecl	transparent matchgroup=eiffelBrackets contained start="\[" end="\]" contains=ALLBUT,eiffelCreate,eiffelTopStruct,eiffelGeneric,eiffelBracketError,eiffelStringEscape,eiffelStringError,eiffelBrackets
   syn region  eiffelClassHeader	start="^class\>" end="$" contains=ALLBUT,eiffelCreate,eiffelGenericCreate,eiffelGeneric,eiffelStringEscape,eiffelStringError,eiffelBrackets
 endif
-syn keyword eiffelDeclaration	is do once deferred unique local attribute
-syn keyword eiffelDeclaration	attached Unique
+syn keyword eiffelDeclaration	is do once deferred unique local attribute assign
+syn keyword eiffelDeclaration	attached detachable Unique
 syn keyword eiffelProperty	expanded obsolete separate frozen
 syn keyword eiffelProperty	prefix infix
 syn keyword eiffelInheritClause	rename redefine undefine select export as
 syn keyword eiffelAll		all
-syn keyword eiffelKeyword	external alias
+syn keyword eiffelKeyword	external alias some
 syn keyword eiffelStatement	if else elseif inspect
 syn keyword eiffelStatement	when then
 syn match   eiffelAssertion	"\<require\(\s\+else\)\=\>"
 syn match   eiffelAssertion	"\<ensure\(\s\+then\)\=\>"
 syn keyword eiffelAssertion	check
 syn keyword eiffelDebug		debug
-syn keyword eiffelStatement	from until loop
+syn keyword eiffelStatement	across from until loop
 syn keyword eiffelAssertion	variant
 syn match   eiffelAssertion	"\<invariant\>"
 syn match   eiffelTopStruct	"^invariant\>"
