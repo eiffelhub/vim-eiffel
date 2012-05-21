@@ -3,7 +3,6 @@
 " Maintainer:	Reimer Behrends <behrends@cse.msu.edu>
 "		With much input from Jocelyn Fiat <jfiat@eiffel.com>
 " See http://www.cse.msu.edu/~behrends/vim/ for the most current version.
-" Last Change:	2001 May 09
 
 " For version 5.x: Clear all syntax items
 " For version 6.x: Quit when a syntax file was already loaded

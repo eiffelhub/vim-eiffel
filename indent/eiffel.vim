@@ -1,11 +1,11 @@
 " Vim indent file
 " Language:	Eiffel
-" Maintainer:	Jocelyn Fiat <eiffel@djoce.net>
+" Maintainer:	Jocelyn Fiat <jfiat@eiffel.com>
 " Previous-Maintainer:	David Clarke <gadicath@dishevelled.net>
 " $Date: 2004/12/09 21:33:52 $
 " $Revision: 1.3 $
-" URL: http://www.djoce.net/page/vim/
-" Last Change:	2004 Sept 14 : removed specific value for tab (sw)
+" URL: https://github.com/eiffelhub/vim-eiffel
+" Last Change:	2012 May: added b:undo_indent  (patch submitted by Thilo Six"
 
 " Only load this indent file when no other was loaded.
 if exists("b:did_indent")
