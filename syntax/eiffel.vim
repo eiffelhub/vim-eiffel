@@ -2,6 +2,7 @@
 " Language:	Eiffel
 " Maintainer: Jocelyn Fiat <jfiat@eiffel.com>
 " Previous maintainer:	Reimer Behrends <behrends@cse.msu.edu>
+" Contributions from: Thilo Six
 " 
 " URL: https://github.com/eiffelhub/vim-eiffel
 " For version 5.x: Clear all syntax items
@@ -11,6 +12,10 @@ if version < 600
 elseif exists("b:current_syntax")
   finish
 endif
+
+let s:keepcpo= &cpo
+set cpo&vim
+
 
 " Option handling
 
@@ -201,5 +206,8 @@ if version >= 508 || !exists("did_eiffel_syntax_inits")
 endif
 
 let b:current_syntax = "eiffel"
+
+let &cpo = s:keepcpo
+unlet s:keepcpo
 
 " vim: ts=8
