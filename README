@@ -1,0 +1,18 @@
+Vim goodies for Eiffel
+
+== Eiffel related ==
+
+* Eiffel Syntax: eiffel.vim
+    This is modified version, the official syntax is maintained by Reimer Behrends 
+    (http://www.cse.msu.edu/~behrends/vim/)
+    It is also part of vim distrib
+
+* Eiffel Indent: eiffel.vim
+    It is also part of vim distrib (this new version will be part of next release of Vim)
+    This version is the official version and is maintained by Jocelyn Fiat.
+
+    (Previously maintained by David Clarke)
+
+* Eiffel FtPlugin: eiffel.vim
+    It contains mainly the setting for the plugin matchit.vim
+	
