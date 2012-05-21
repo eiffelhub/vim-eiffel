@@ -1,9 +1,9 @@
 " Eiffel syntax file
 " Language:	Eiffel
-" Maintainer:	Reimer Behrends <behrends@cse.msu.edu>
-"		With much input from Jocelyn Fiat <jfiat@eiffel.com>
-" See http://www.cse.msu.edu/~behrends/vim/ for the most current version.
-
+" Maintainer: Jocelyn Fiat <jfiat@eiffel.com>
+" Previous maintainer:	Reimer Behrends <behrends@cse.msu.edu>
+" 
+" URL: https://github.com/eiffelhub/vim-eiffel
 " For version 5.x: Clear all syntax items
 " For version 6.x: Quit when a syntax file was already loaded
 if version < 600
