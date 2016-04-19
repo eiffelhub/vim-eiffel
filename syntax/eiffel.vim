@@ -3,211 +3,372 @@
 " Maintainer: Jocelyn Fiat <jfiat@eiffel.com>
 " Previous maintainer:	Reimer Behrends <behrends@cse.msu.edu>
 " Contributions from: Thilo Six
-" 
+"
 " URL: https://github.com/eiffelhub/vim-eiffel
-" For version 5.x: Clear all syntax items
-" For version 6.x: Quit when a syntax file was already loaded
-if version < 600
-  syntax clear
-elseif exists("b:current_syntax")
+" Prelude {{{1
+if exists("b:current_syntax")
   finish
 endif
 
 let s:keepcpo= &cpo
 set cpo&vim
 
+" Whitespace errors {{{1
+if exists("eiffel_space_errors")
+  if !exists("eiffel_no_trail_space_error")
+    syn match eiffelSpaceError display excludenl "\s\+$"
+  endif
+  if !exists("eiffel_no_tab_space_error")
+    syn match eiffelSpaceError display " \+\t"me=e-1
+  endif
+endif
 
-" Option handling
-
-if exists("eiffel_ignore_case")
+" Case sensitivity {{{1
+if exists("eiffel_ignore_case") && !exists("eiffel_liberty")
   syn case ignore
 else
   syn case match
   if exists("eiffel_pedantic") || exists("eiffel_strict")
-    syn keyword eiffelError	current void result precursor none
-    syn keyword eiffelError	CURRENT VOID RESULT PRECURSOR None
+    syn keyword eiffelError	current void result precursor
+    syn keyword eiffelError	CURRENT VOID RESULT PRECURSOR
+    syn keyword eiffelError	none None
     syn keyword eiffelError	TRUE FALSE
   endif
   if exists("eiffel_pedantic")
     syn keyword eiffelError	true false
-    syn match eiffelError	"\<[a-z_]\+[A-Z][a-zA_Z_]*\>"
-    syn match eiffelError	"\<[A-Z][a-z_]*[A-Z][a-zA-Z_]*\>"
+    syn match	eiffelError	"\<[a-z_]\+[A-Z][a-zA_Z_]*\>"
+    syn match	eiffelError	"\<[A-Z][a-z_]*[A-Z][a-zA-Z_]*\>"
+  else
+    syn keyword eiffelBoolean	true false
   endif
   if exists("eiffel_lower_case_predef")
     syn keyword eiffelPredefined current void result precursor
   endif
 endif
 
-if exists("eiffel_hex_constants")
-  syn match  eiffelNumber	"\d[0-9a-fA-F]*[xX]"
-endif
+syn cluster eiffelContained contains=eiffelPercentCode,eiffelPercentCodeError,eiffelTodo,eiffelCommentName,eiffelSpecialFeatureSet,eiffelSpecialNoteName,eiffelConstraint
 
-" Keyword definitions
+" Parentheses {{{1
+" TODO: only use this in feature do/once blocks?
+" syn match   eiffelParenError	")"
+" syn region  eiffelParen		transparent start="(" end=")" contains=ALLBUT,eiffelParenError,@eiffelContained,@eiffelTopClauses
+" syn cluster eiffelParen		contains=eiffelParen,eiffelParenError
 
-syn keyword eiffelTopStruct	note indexing feature creation inherit
-syn match   eiffelTopStruct	"\<class\>"
-syn match   eiffelKeyword	"\<end\>"
-syn match   eiffelTopStruct	"^end\>\(\s*--\s\+class\s\+\<[A-Z][A-Z0-9_]*\>\)\=" contains=eiffelClassName
-syn match   eiffelBrackets	"[[\]]"
-syn match eiffelBracketError	"\]"
-syn region eiffelGeneric	transparent matchgroup=eiffelBrackets start="\[" end="\]" contains=ALLBUT,eiffelBracketError,eiffelGenericDecl,eiffelStringError,eiffelStringEscape,eiffelGenericCreate,eiffelTopStruct
-if exists("eiffel_ise")
-  syn match   eiffelAgent	"\<agent\>"
-  syn match   eiffelConvert	"\<convert\>"
-  syn match   eiffelCreate	"\<create\>"
-  syn match   eiffelTopStruct	contained "\<create\>"
-  syn match   eiffelTopStruct	contained "\<convert\>"
-  syn match   eiffelGenericCreate  contained "\<create\>"
-  syn match   eiffelTopStruct	"^create\>"
-  syn region  eiffelGenericDecl	transparent matchgroup=eiffelBrackets contained start="\[" end="\]" contains=ALLBUT,eiffelCreate,eiffelTopStruct,eiffelGeneric,eiffelBracketError,eiffelStringEscape,eiffelStringError,eiffelBrackets
-  syn region  eiffelClassHeader	start="^class\>" end="$" contains=ALLBUT,eiffelCreate,eiffelGenericCreate,eiffelGeneric,eiffelStringEscape,eiffelStringError,eiffelBrackets
-endif
-syn keyword eiffelDeclaration	is do once deferred unique local attribute assign
-syn keyword eiffelDeclaration	attached detachable Unique
-syn keyword eiffelProperty	expanded obsolete separate frozen
-syn keyword eiffelProperty	prefix infix
-syn keyword eiffelInheritClause	rename redefine undefine select export as
-syn keyword eiffelAll		all
-syn keyword eiffelKeyword	external alias some
-syn keyword eiffelStatement	if else elseif inspect
-syn keyword eiffelStatement	when then
-syn match   eiffelAssertion	"\<require\(\s\+else\)\=\>"
-syn match   eiffelAssertion	"\<ensure\(\s\+then\)\=\>"
-syn keyword eiffelAssertion	check
-syn keyword eiffelDebug		debug
-syn keyword eiffelStatement	across from until loop
-syn keyword eiffelAssertion	variant
-syn match   eiffelAssertion	"\<invariant\>"
-syn match   eiffelTopStruct	"^invariant\>"
+" Brackets {{{1
+syn match  eiffelBracketError	"\]"
+syn region eiffelBrackets	transparent matchgroup=eiffelBracket start="\[" end="]" contains=ALLBUT,eiffelBracketError,@eiffelContained,@eiffelTopClauses
+
+" Keywords {{{1
+syn keyword eiffelDeclaration	alias assign attribute deferred do external local unique
+syn keyword eiffelDeclaration	alias contained containedin=eiffelInheritClause
+syn keyword eiffelDeclaration	convert contained containedin=eiffelInheritClause,@eiffelFeature
+syn match   eiffelDeclaration	"\<\%(obsolete\|note\)\>" contained containedin=@eiffelFeature
+if exists("eiffel_liberty")
+  syn match   eiffelDeclaration	"\<indexing\>" contained containedin=@eiffelFeature
+end
+syn match   eiffelDeclaration	"\<once\>"
+if !exists("eiffel_liberty")
+  syn keyword eiffelAttachment	attached detachable
+  syn keyword eiffelProperty	expanded reference contained containedin=eiffelFormalGeneric
+  syn keyword eiffelProperty	separate
+else
+  syn keyword eiffelError	separate
+end
+syn keyword eiffelProperty	expanded separate frozen
+syn keyword eiffelProperty	prefix infix contained containedin=eiffelInheritClause,@eiffelFeature
+syn keyword eiffelInherit	rename contained containedin=eiffelFormalGeneric
+syn keyword eiffelInherit	rename redefine undefine select export
+syn keyword eiffelConditional	if else elseif inspect when then
+syn keyword eiffelRepeat	from until loop
+if !exists("eiffel_liberty")
+  syn keyword eiffelRepeat	across all some
+end
 syn keyword eiffelException	rescue retry
+syn keyword eiffelKeyword	as
+syn match   eiffelKeyword	"\<end\>" contained containedin=@eiffelFeature
 
+syn match   eiffelAssertion	"\<require\%(\s\+else\)\=\>"
+syn match   eiffelAssertion	"\<ensure\%(\s\+then\)\=\>"
+syn match   eiffelAssertion	"\<invariant\>" contained containedin=@eiffelFeature
+syn keyword eiffelAssertion	variant check
+
+syn keyword eiffelAgent		agent
+syn keyword eiffelDebug		debug
+syn match   eiffelCreate	"\<create\>" contained containedin=@eiffelFeature
+syn match   eiffelOnce		'\<once\>\ze\s\+"'
+if exists("eiffel_liberty")
+  syn match   eiffelOnce	'\<once\>\ze\s\+U"'
+end
+
+" Predefined names {{{1
 syn keyword eiffelPredefined	Current Void Result Precursor
+syn keyword eiffelAnchor	Current contained
 
-" Operators
-syn match   eiffelOperator	"\<and\(\s\+then\)\=\>"
-syn match   eiffelOperator	"\<or\(\s\+else\)\=\>"
-syn keyword eiffelOperator	xor implies not
-syn keyword eiffelOperator	strip old
-syn keyword eiffelOperator	Strip
-syn match   eiffelOperator	"\$"
-syn match   eiffelCreation	"!"
-syn match   eiffelExport	"[{}]"
-syn match   eiffelArray		"<<"
-syn match   eiffelArray		">>"
+" Special names {{{1
+syn keyword eiffelSpecialFeatureSet	all contained
+syn keyword eiffelAnchored		like nextgroup=eiffelAnchor skipwhite
+syn keyword eiffelSpecialNoteName	EIS
+
+" Operators {{{1
+if exists("eiffel_liberty")
+  syn match eiffelFreeOperator		"[-+*/\=<>@#|&~]\%([.?{}]*[-+*/\=<>@#|&~]\)*"
+else
+  syn match eiffelFreeOperator		"[@#|&][^%[:space:][:cntrl:]]*"
+endif
+syn match   eiffelPredefinedOperator	"\%(=\|/=\|\~\|/\~\)"
+syn match   eiffelStandardOperator	"[-+*/^<>]"
+syn match   eiffelStandardOperator	"\%(<=\|>=\|//\|\\\\\|\.\.\)"
+syn match   eiffelStandardOperatorWord	"\<and\%(\s\+then\)\=\>"
+syn match   eiffelStandardOperatorWord	"\<or\%(\s\+else\)\=\>"
+syn keyword eiffelStandardOperatorWord	xor implies not
+
+" postcondition 'operators'
+if !exists("eiffel_liberty")
+  syn keyword eiffelOperator	strip
+end
+syn keyword eiffelOperator	old
+
+syn match   eiffelAddress	"\$"
+syn match   eiffelAssignment	":="
+if exists("eiffel_liberty")
+  syn match   eiffelAssignment	"[:?]:="
+end
 syn match   eiffelConstraint	"->"
-syn match   eiffelOperator	"[@#|&][^ \e\t\b%]*"
+syn match   eiffelTypeBrace	"[{}]"
 
-" Special classes
-syn keyword eiffelAnchored	like
-syn keyword eiffelBitType	BIT
+" Class names {{{1
+syn match   eiffelClassName	"\C\<[A-Z][A-Z0-9_]*\>" nextgroup=eiffelFormalGeneric skipwhite contained containedin=eiffelClassClause
+syn match   eiffelClassName	"\C\<[A-Z][A-Z0-9_]*\>"						contained containedin=eiffelClients
+syn match   eiffelClassName	"\C\<[A-Z][A-Z0-9_]*\>" nextgroup=eiffelActualGeneric skipwhite
 
-" Constants
-if !exists("eiffel_pedantic")
-  syn keyword eiffelBool	true false
-endif
-syn keyword eiffelBool		True False
-syn region  eiffelString	start=+"+ skip=+%"+ end=+"+ contains=eiffelStringEscape,eiffelStringError
-syn match   eiffelStringEscape	contained "%[^/]"
-syn match   eiffelStringEscape	contained "%/\d\+/"
-syn match   eiffelStringEscape	contained "^[ \t]*%"
-syn match   eiffelStringEscape	contained "%[ \t]*$"
-syn match   eiffelStringError	contained "%/[^0-9]"
-syn match   eiffelStringError	contained "%/\d\+[^0-9/]"
-syn match   eiffelBadConstant	"'\(%[^/]\|%/\d\+/\|[^'%]\)\+'"
-syn match   eiffelBadConstant	"''"
-syn match   eiffelCharacter	"'\(%[^/]\|%/\d\+/\|[^'%]\)'" contains=eiffelStringEscape
-syn match   eiffelNumber	"-\=\<\d\+\(_\d\+\)*\>"
-syn match   eiffelNumber	"\<[01]\+[bB]\>"
-syn match   eiffelNumber	"-\=\<\d\+\(_\d\+\)*\.\(\d\+\(_\d\+\)*\)\=\([eE][-+]\=\d\+\(_\d\+\)*\)\="
-syn match   eiffelNumber	"-\=\.\d\+\(_\d\+\)*\([eE][-+]\=\d\+\(_\d\+\)*\)\="
-syn match   eiffelComment	"--.*" contains=eiffelTodo
+if exists("eiffel_liberty")
+  syn keyword eiffelError NONE containedin=ALLBUT,@eiffelString,@eiffelComment
+end
 
-syn case match
+" actual generics, tuples, conversions
+syn cluster eiffelTypeList contains=eiffelClassName,eiffelAttachment,eiffelTypeBrace,eiffelAnchored
+" exports, create, feature
+syn region eiffelClients matchgroup=eiffelTypeBrace start="{" end="}" contained contains=@eiffelComment "contains=eiffelClassName
 
-" Case sensitive stuff
+" Generics {{{1
+" TODO: remove contained eActualGeneric? Utilise eTypeList?
+syn region  eiffelFormalGeneric	transparent matchgroup=eiffelBracket start="\[" end="]" contained contains=eiffelActualGeneric,eiffelClassName,eiffelTypeBrace,eiffelConstraint,eiffelAttachment,eiffelCreate,eiffelKeyword
+syn region  eiffelActualGeneric	transparent matchgroup=eiffelBracket start="\[" end="]" contained contains=eiffelActualGeneric,eiffelClassName,eiffelTypeBrace,eiffelAttachment,eiffelAnchored
 
-syn keyword eiffelTodo		contained TODO XXX FIXME
-syn match   eiffelClassName	"\<[A-Z][A-Z0-9_]*\>"
+" Constants and other manifest forms {{{1
+syn keyword eiffelBoolean		True False
 
-" Catch mismatched parentheses
-syn match eiffelParenError	")"
-syn region eiffelParen		transparent start="(" end=")" contains=ALLBUT,eiffelParenError,eiffelStringError,eiffelStringEscape
+syn cluster eiffelString		contains=eiffelString,eiffelVerbatimString
 
-if exists("eiffel_fold")
-"    setlocal foldmethod=indent
-"    syn sync fromstart
-endif
+syn match   eiffelStringError		'"%\+"'
 
-" Should suffice for even very long strings and expressions
-syn sync lines=40
+syn match   eiffelPercentCode		contained "\c%/\%(\d\+\|0x\x\+\|0c\o\+\|0b[01]\+\)/" containedin=eiffelCharacter
+syn match   eiffelPercentCodeError	contained "%."
+syn match   eiffelPercentCode		contained "%[ABCDFHLNQRSTUV%'"()<>]"
+syn match   eiffelPercentCodeError	contained "%/[^/]*/\="
+syn match   eiffelPercentCode		contained "%/\d\+/"
+if exists("eiffel_liberty")
+  syn match   eiffelPercentCode		contained "\c%/0x\%(\x\x\)\+/"
+  syn match   eiffelUnicodePercentCode	contained "%/Ux\x\+\%(_\x\+\)*/"
+else
+  syn match eiffelStringError		'\<U"'
+end
 
-" Define the default highlighting.
-" For version 5.7 and earlier: only when not done already
-" For version 5.8 and later: only when an item doesn't have highlighting yet
-if version >= 508 || !exists("did_eiffel_syntax_inits")
-  if version < 508
-    let did_eiffel_syntax_inits = 1
-    command -nargs=+ HiLink hi link <args>
-  else
-    command -nargs=+ HiLink hi def link <args>
-  endif
+syn region  eiffelString		start=+"+		 skip=+%%\|%"+ end=+"+ contains=eiffelPercentCode,eiffelPercentCodeError oneline
+syn region  eiffelString		start=+"\ze.*%\s*\n\s*%+ skip=+%%\|%"+ end=+"+ contains=eiffelPercentCode,eiffelPercentCodeError,eiffelStringLineWrap fold
+if exists("eiffel_liberty")
+  syn region  eiffelUnicodeString	start=+U"+		  skip=+%%\|%"+ end=+"+ contains=eiffelPercentCode,eiffelUnicodePercentCode,eiffelPercentCodeError oneline
+  syn region  eiffelUnicodeString	start=+U"\ze.*%\s*\n\s*%+ skip=+%%\|%"+ end=+"+ contains=eiffelPercentCode,eiffelUnicodePercentCode,eiffelPercentCodeError,eiffelStringLineWrap fold
+  syn cluster eiffelString		add=eiffelUnicodeString
+end
 
-  HiLink eiffelKeyword		Statement
-  HiLink eiffelProperty		Statement
-  HiLink eiffelInheritClause	Statement
-  HiLink eiffelStatement	Statement
-  HiLink eiffelDeclaration	Statement
-  HiLink eiffelAssertion	Statement
-  HiLink eiffelDebug		Statement
-  HiLink eiffelException	Statement
-  HiLink eiffelGenericCreate	Statement
+syn match   eiffelPercentCodeError	contained "\%(%%\)\+\n"
+syn match   eiffelStringLineWrap	contained "%\s*\n\s*%"
 
-  HiLink eiffelAgent		Statement
-  HiLink eiffelConvert		Statement
+syn region  eiffelVerbatimString	start=+"\z([^"]*\)\[\s*$+ end=+^\s*]\z1"+ fold
+syn region  eiffelVerbatimString	start=+"\z([^"]*\){\s*$+  end=+^\s*}\z1"+ fold
 
-  HiLink eiffelTopStruct	PreProc
+syn match   eiffelCharacterError	"'[^']*'"
 
-  HiLink eiffelAll		Special
-  HiLink eiffelAnchored		Special
-  HiLink eiffelBitType		Special
+syn match   eiffelCharacter		"'%\@!\p'"
+syn match   eiffelCharacter		"\C'%[ABCDFHLNQRSTUV%'"()<>]'" contains=eiffelPercentCode
+if exists("eiffel_liberty")
+  syn match   eiffelCharacter		"'\c%/\%(\d\+\|0x\x\x\)/'" contains=eiffelPercentCode
+else
+  syn match   eiffelCharacter		"'\c%/\%(\d\+\|0x\x\+\|0c\o\+\|0b[01]\+\)/'" contains=eiffelPercentCode
+end
+syn cluster eiffelCharacter		contains=eiffelCharacter,eiffelCharacterError
 
+if !exists("eiffel_liberty")
+  syn match   eiffelInteger		"\c-\=\<0b[01]\+\%(_[01]\+\)*\>"
+  syn match   eiffelInteger		"\c-\=\<0c\o\+\%(_\o\+\)*\>"
+end
+syn match   eiffelInteger		"-\=\<\d\+\%(_\d\+\)*\>"
+syn match   eiffelInteger		"\c-\=\<0x\x\+\%(_\x\+\)*\>"
+syn match   eiffelReal			"-\=\<\d\+\%(_\d\+\)*\.\%(\d\+\%(_\d\+\)*\)\=\%([eE][-+]\=\d\+\%(_\d\+\)*\)\="
+syn match   eiffelReal			"-\=\.\d\+\%(_\d\+\)*\%([eE][-+]\=\d\+\%(_\d\+\)*\)\="
+syn cluster eiffelNumber		contains=eiffelInteger,eiffelReal
 
-  HiLink eiffelBool		Boolean
-  HiLink eiffelString		String
-  HiLink eiffelCharacter	Character
-  HiLink eiffelClassName	Type
-  HiLink eiffelNumber		Number
+syn region  eiffelArray			matchgroup=eiffelArrayDelimiter start="<<" end=">>" transparent fold
 
-  HiLink eiffelStringEscape	Special
+syn cluster eiffelManifestType		contains=eiffelClassName,eiffelAttachment,eiffelAnchored,eiffelTypeBrace
+syn cluster eiffelConstant		contains=eiffelBoolean,@eiffelCharacter,@eiffelNumber,@eiffelString,@eiffelManifestType
 
-  HiLink eiffelOperator		Special
-  HiLink eiffelArray		Special
-  HiLink eiffelExport		Special
-  HiLink eiffelCreation		Special
-  HiLink eiffelBrackets		Special
-  HiLink eiffelGeneric		Special
-  HiLink eiffelGenericDecl	Special
-  HiLink eiffelConstraint	Special
-  HiLink eiffelCreate		Special
-
-  HiLink eiffelPredefined	Constant
-
-  HiLink eiffelComment		Comment
-
-  HiLink eiffelError		Error
-  HiLink eiffelBadConstant	Error
-  HiLink eiffelStringError	Error
-  HiLink eiffelParenError	Error
-  HiLink eiffelBracketError	Error
-
-  HiLink eiffelTodo		Todo
-
-  delcommand HiLink
+" Folding support {{{1
+if has("folding") && exists("eiffel_fold")
+  setlocal foldtext=EiffelFoldText()
+  setlocal foldmethod=syntax
 endif
 
+" join multiline class headers
+function! EiffelFoldText()
+	let fdt = foldtext()
+	if getline(v:foldstart) =~ 'class\s*$'
+		let classname = substitute(getline(nextnonblank(v:foldstart + 1)), '\s*', '', '')
+		let fdt .= ' ' . classname
+	endif
+	return fdt
+endfunction
+
+function! s:IsFoldable(name)
+  let default = "note,obsolete,inherit,create,convert,feature,feature-body,invariant" " exclude class headers
+  return index(split(get(g:, "eiffel_fold_groups", default), '\s*,\s*'), a:name, 0, 1) != -1
+endfunction
+
+" Top level clauses {{{1
+function! s:MakeTopClause(name, start, end, contains)
+  call add(a:end, '^end\>\ze\(\(^\(\s*--\|\s*$\)\@!\)\@!\_.\)*\%$')
+  execute "syn region eiffel" . a:name . "Clause transparent matchgroup=eiffelTopStruct" .
+	\ ' start="' . a:start . '"'
+	\ join(map(a:end, '"end=\"" . v:val . "\""')) .
+	\ " contains=" . a:contains . " " . (s:IsFoldable(a:name) ? "fold" : "")
+endfunction
+
+syn cluster eiffelTopClauses contains=eiffelNoteClause,eiffelClassClause,eiffelObsoleteClause,eiffelInheritClause,eiffelCreateClause,eiffelConvertClause,eiffelFeatureClause,eiffelInvariantClause
+
+if exists("eiffel_liberty")
+  let s:inherit = 'inherit\|insert'
+  let s:note	= '\%(note\|indexing\)'
+else
+  let s:inherit = "inherit"
+  let s:note	= "note"
+end
+
+call s:MakeTopClause("Note", '\<' . s:note . '\>',
+		   \ ['\ze\<class\>',
+		   \  '\ze\<deferred\s\+class\>',
+		   \  '\ze\<\%(\%\(frozen\)\=\s*\%(expanded\)\=\s*\%(external\)\=\)\s\+class\>'],
+		   \ "@eiffelConstant,eiffelSpecialNoteName,@eiffelComment")
+call s:MakeTopClause("Class", '\<class\>',
+		   \ ['\ze\<\%(obsolete\|' . s:inherit . '\|create\|convert\|feature\|invariant\)\>', '\ze;\=' . s:note . '\>'],
+		   \ "@eiffelComment")
+call s:MakeTopClause("Obsolete", '\<obsolete\>',
+		   \ ['\ze\<\%(' . s:inherit . '\|create\|convert\|feature\|invariant\)\>', '\ze;\=' . s:note . '\>'],
+		   \ "@eiffelString,@eiffelComment")
+call s:MakeTopClause("Inherit", '\<\%(' . s:inherit . '\)\>',
+		   \ ['\ze\<\%(' . s:inherit . '\|create\|_convert\|feature\|invariant\)\>', '^\zeconvert\>', '\ze;\=' . s:note . '\>'],
+		   \ "eiffelClassName,eiffelInherit,eiffelKeyword,eiffelClients,eiffelSpecialFeatureSet,@eiffelString,@eiffelComment")
+call s:MakeTopClause("Create", '\<create\>',
+		   \ ['\ze\<\%(create\|convert\|feature\|invariant\)\>', '\ze;\=' . s:note . '\>'],
+		   \ "TOP,@eiffelTopClauses")
+call s:MakeTopClause("Convert", '\<convert\>',
+		   \ ['\ze\<\%(feature\|invariant\)\>', '\ze;\=' . s:note . '\>'],
+		   \ "eiffelTypeBrace,eiffelClassName,eiffelAttachment,@eiffelComment")
+call s:MakeTopClause("Feature", '\<feature\>',
+		   \ ['\ze\%(\<feature\|^invariant\)\>', '^\ze;\=' . s:note . '\>'],
+		   \ "TOP,@eiffelTopClauses")
+call s:MakeTopClause("Invariant", '\<invariant\>',
+		   \ ['\ze;\=' . s:note . '\>'],
+		   \ "TOP,@eiffelTopClauses")
+
+" Features {{{1
+syn cluster eiffelFeature contains=eiffelFeatureClause,eiffelFeature
+
+exec 'syn region eiffelFeature ' .
+   \ 'start="^\s\+\%' .   (&sw + 1)	. 'vfrozen\>" ' .
+   \ 'start="^\s\+\%' .   (&sw + 1)	. 'v\a\w*.\{-}\(:\|\_s*(\_s*\a\w*:\|\(\_s*--.*\|\_s\)*\<\(do\|once\|deferred\|external\|obsolete\|note\|require\|local\|attribute\)\>\)" ' .
+   \ 'end="\ze\n\_s*\%' . (&sw + 1)	. 'v\a\w*" ' .
+   \ 'end="^\s\+\%' .	  (&sw * 2 + 1) . 'v\<end\>" ' .
+   \ 'end="\ze\n\%(\s*\n\)*\%(\%(feature\|invariant\|note\|end\)\>\)" ' .
+   \ 'contained containedin=eiffelFeatureClause contains=TOP,@eiffelTopClauses ' . (s:IsFoldable("feature-body") ? 'fold' : '')
+
+" Comments {{{1
+syn match   eiffelComment		"--.*" contains=eiffelTodo,eiffelCommentName,@Spell
+syn match   eiffelComment		"\%(^end\s*\)\@<=--\sclass \u\w*\s*$" contains=eiffelClassName
+" TODO: from memory, the official recommendation is to conceal quotes and italicize - desirable?
+syn match   eiffelCommentName		"`[^']\+'" contained
+syn match   eiffelTodo			"\C\%(TODO\|XXX\|FIXME\|NOTE\)" contained
+syn region  eiffelMultilineComment	start="^\s*--.*\n\%(\s*--\)\@=" end="^\s*--.*\n\%(\s*--\)\@!" contains=eiffelComment transparent keepend fold
+syn cluster eiffelComment		contains=eiffelComment,eiffelMultilineComment
+
+" Syncing {{{1
+syn sync fromstart
+
+" Default highlighting {{{1
+hi def link eiffelKeyword		Statement
+hi def link eiffelProperty		Statement
+hi def link eiffelInherit		Statement
+hi def link eiffelConditional		Statement
+hi def link eiffelRepeat		Statement
+hi def link eiffelDeclaration		Statement
+hi def link eiffelAttachment		Statement
+hi def link eiffelAssertion		Statement
+hi def link eiffelDebug			Statement
+hi def link eiffelException		Statement
+
+hi def link eiffelAgent			Statement
+hi def link eiffelCreate		Statement
+hi def link eiffelNote			Statement
+hi def link eiffelObsolete		Statement
+hi def link eiffelOnce			Statement
+
+hi def link eiffelTopStruct		PreProc
+
+hi def link eiffelAnchored		Special
+hi def link eiffelSpecialFeatureSet	Special
+hi def link eiffelSpecialNoteName	Special
+
+hi def link eiffelClassName		Type
+
+hi def link eiffelBoolean		Boolean
+hi def link eiffelCharacter		Character
+hi def link eiffelString		String
+hi def link eiffelUnicodeString		eiffelString
+hi def link eiffelVerbatimString	eiffelString
+hi def link eiffelInteger		Number
+hi def link eiffelReal			Float
+
+hi def link eiffelPercentCode		Special
+hi def link eiffelStringLineWrap	eiffelPercentCode
+hi def link eiffelUnicodePercentCode	eiffelPercentCode
+
+hi def link eiffelOperator		Special
+hi def link eiffelFreeOperator		eiffelOperator
+hi def link eiffelStandardOperatorWord	eiffelOperator
+hi def link eiffelArrayDelimiter	Special
+hi def link eiffelTypeBrace		Special
+hi def link eiffelBracket		Special
+hi def link eiffelAddress		Special
+hi def link eiffelConstraint		Special
+
+hi def link eiffelPredefined		Constant
+hi def link eiffelAnchor		eiffelPredefined
+
+hi def link eiffelComment		Comment
+hi def link eiffelCommentName		SpecialComment
+hi def link eiffelTodo			Todo
+
+hi def link eiffelError			Error
+hi def link eiffelStringError		Error
+hi def link eiffelCharacterError	Error
+hi def link eiffelPercentCodeError	Error
+hi def link eiffelParenError		Error
+hi def link eiffelBracketError		Error
+hi def link eiffelSpaceError		Error
+
+" Postscript {{{1
 let b:current_syntax = "eiffel"
 
 let &cpo = s:keepcpo
 unlet s:keepcpo
 
-" vim: ts=8
