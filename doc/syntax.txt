@@ -1,0 +1,66 @@
+EIFFEL					*eiffel.vim* *ft-eiffel-syntax*
+
+By default Eiffel Software's dialect of the language is assumed.
+Alternatively, if you are using Liberty Eiffel support for its differences can
+be enabled by setting the following variable in your startup file: >
+
+	:let eiffel_liberty=1
+
+While Eiffel is not case-sensitive, its style guidelines are, and the
+syntax highlighting file encourages their use.  This also allows for
+highlighting class names differently.  If you want to disable case-sensitive
+highlighting, add the following line to your startup file: >
+
+	:let eiffel_ignore_case=1
+
+Case still matters for class names and TODO marks in comments.
+
+Setting this variable has no effect when *eiffel_liberty* is set as Liberty
+Eiffel is always case-sensitive.
+
+Conversely, for even stricter checks, add one of the following lines: >
+
+	:let eiffel_strict=1
+	:let eiffel_pedantic=1
+
+Setting eiffel_strict will only catch improper capitalization for the
+five predefined words "Current", "Void", "Result", "Precursor", and
+"NONE", to warn against their accidental use as feature or class names.
+
+Setting eiffel_pedantic will enforce adherence to the Eiffel style
+guidelines fairly rigorously (like arbitrary mixes of upper- and
+lowercase letters as well as outdated ways to capitalize keywords).
+
+If you want to use the lower-case version of "Current", "Void",
+"Result", and "Precursor", you can use >
+
+	:let eiffel_lower_case_predef=1
+
+instead of completely turning case-sensitive highlighting off.
+
+Folding of multiline syntax regions can be enabled with: >
+
+	:let eiffel_fold=1
+
+and the specific regions that are considered foldable can be specified with: >
+
+	:let eiffel_fold_groups=[group1,...]
+
+The following groups are supported: >
+
+Group		Description ~
+*note*		A class-level notes clause
+*class*		The class header along with any formal generic list
+*obsolete*	The class-level obsolete mark
+*inherit*	An inherit clause (also insert when *eiffel_liberty* is set)
+*create*	A creation clause
+*convert*	The converter clause
+*feature*	A feature clause
+*feature-body*	A feature declaration
+*invariant*	The class-level invariant clause
+
+The default value is "note,obsolete,inherit,create,convert,feature,feature-body,invariant"
+
+Comments and strings are always foldable.
+
+vim:tw=78:sw=4:ts=8:ft=help:norl:
