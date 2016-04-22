@@ -288,9 +288,9 @@ exec 'syn region eiffelFeature ' .
    \ 'start="^\s\+\%' .   (&sw + 1)	. 'vfrozen\>" ' .
    \ 'start="^\s\+\%' .   (&sw + 1)	. 'v\a\w*.\{-}\(:\|\_s*(\_s*\a\w*:\|\(\_s*--.*\|\_s\)*\<\(do\|once\|deferred\|external\|obsolete\|note\|require\|local\|attribute\)\>\)" ' .
    \ 'end="\ze\n\_s*\%' . (&sw + 1)	. 'v\a\w*" ' .
-   \ 'end="^\s\+\%' .	  (&sw * 2 + 1) . 'v\<end\>" ' .
-   \ 'end="\ze\n\%(\s*\n\)*\%(\%(feature\|invariant\|note\|end\)\>\)" ' .
-   \ 'contained containedin=eiffelFeatureClause contains=TOP,@eiffelTopClauses ' . (s:IsFoldable("feature-body") ? 'fold' : '')
+   \ 'matchgroup=eiffelKeyword end="^\s\+\%' .	  (&sw * 2 + 1) . 'v\<end\>" ' .
+   \ 'matchgroup=NONE end="\ze\n\%(\s*\n\)*\%(\%(feature\|invariant\|note\|end\)\>\)" ' .
+   \ 'contained transparent containedin=eiffelFeatureClause contains=TOP,@eiffelTopClauses ' . (s:IsFoldable("feature-body") ? 'fold' : '')
 
 " Comments {{{1
 syn match   eiffelComment		"--.*" contains=eiffelTodo,eiffelCommentName,@Spell
