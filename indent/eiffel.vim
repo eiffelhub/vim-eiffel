@@ -23,7 +23,7 @@ setlocal indentkeys+==end,=else,=ensure,=require,=check,=loop,=until
 setlocal indentkeys+==creation,=feature,=inherit,=class,=is,=redefine,=rename,=variant
 setlocal indentkeys+==invariant,=do,=local,=export
 
-let b:undo_indent = "setl smartindent< indentkeys< indentexpr< autoindent< comments< "
+let b:undo_indent = "setl autoindent< cindent< comments< indentkeys< indentexpr< lisp< smartindent<"
 
 " Define some stuff
 " keywords grouped by indenting
